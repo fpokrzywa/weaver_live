@@ -47,6 +47,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     { icon: Lock, label: 'Reset password', id: 'reset-password' },
   ];
 
+  // Check if user is admin
+  const isAdmin = user?.email === 'freddie@3cpublish.com';
+
   return (
     <div className="w-64 bg-gray-800 text-white min-h-screen flex flex-col">
       {/* Logo */}
@@ -119,6 +122,28 @@ const Sidebar: React.FC<SidebarProps> = ({
             ))}
           </nav>
         </div>
+
+        {/* Admin Section - Only show for admin users */}
+        {isAdmin && (
+          <div>
+            <h3 className="px-6 text-xs font-semibold text-gray-300 uppercase tracking-wider mb-4">
+              Administration
+            </h3>
+            <nav className="space-y-1">
+              <button
+                onClick={() => onSectionChange('admin')}
+                className={`flex items-center px-6 py-2 text-sm font-medium transition-colors w-full text-left ${
+                  activeSection === 'admin'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-300 hover:bg-gray-600 hover:text-white'
+                }`}
+              >
+                <Users className="mr-3 h-4 w-4" />
+                User Management
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
 
       {/* Bottom Section */}
