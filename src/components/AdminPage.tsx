@@ -126,6 +126,17 @@ const AdminPage: React.FC<AdminPageProps> = () => {
     loadData();
   }, []);
 
+  // Update role_id when roles are loaded and no role is selected
+  useEffect(() => {
+    if (roles.length > 0 && !editingUser && userForm.role_id === 2) {
+      // Set default role to the first available role if "User" role (id: 2) doesn't exist
+      const userRole = roles.find(role => role.id === 2);
+      if (!userRole && roles.length > 0) {
+        setUserForm(prev => ({ ...prev, role_id: roles[0].id }));
+      }
+    }
+  }, [roles, editingUser, userForm.role_id]);
+
   // User operations
   const handleCreateUser = async () => {
     try {
@@ -644,10 +655,18 @@ const AdminPage: React.FC<AdminPageProps> = () => {
                   onChange={(e) => setUserForm(prev => ({ ...prev, role_id: parseInt(e.target.value) }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
                 >
+                  {roles.length === 0 && (
+                    <option value="">Loading roles...</option>
+                  )}
                   {roles.map(role => (
                     <option key={role.id} value={role.id}>{role.name}</option>
                   ))}
                 </select>
+                {roles.length === 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    No roles available. Please create roles first.
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center">
