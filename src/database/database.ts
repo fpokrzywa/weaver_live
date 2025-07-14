@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 
-const dbPath = 'database.sqlite';
+const dbPath = 'aw_build.db';
 const db = new Database(dbPath);
 
 // Initialize database with schema directly
