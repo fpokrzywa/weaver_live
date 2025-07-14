@@ -54,7 +54,12 @@ const hashPassword = (password: string): string => {
 const updateAdminPassword = db.prepare(`
   UPDATE users SET password_hash = ? WHERE email = 'freddie@3cpublish.com'
 `);
-updateAdminPassword.run(hashPassword('Appdev2025!'));
+try {
+  updateAdminPassword.run(hashPassword('Appdev2025!'));
+  console.log('Database initialized successfully');
+} catch (error) {
+  console.log('Database already initialized or error:', error.message);
+}
 
 export interface User {
   id: number;
