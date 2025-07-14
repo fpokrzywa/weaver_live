@@ -60,11 +60,11 @@ function App() {
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
     // If the main content is collapsed, expand it when a nav item is clicked
-    if (isMainContentCollapsed && section !== 'admin') {
+    if (isMainContentCollapsed) {
       setIsMainContentCollapsed(false);
     }
     // If the sidebar is collapsed, expand it when a nav item is clicked
-    if (isSidebarCollapsed && section !== 'admin') {
+    if (isSidebarCollapsed) {
       setIsSidebarCollapsed(false);
     }
   };
@@ -105,7 +105,7 @@ function App() {
   return (
     <>
       <div className="flex h-screen bg-gray-100">
-        {!isSidebarCollapsed && activeSection !== 'admin' && (
+        {!isSidebarCollapsed && (
           <Sidebar 
             activeSection={activeSection}
             onSectionChange={handleSectionChange}
@@ -118,15 +118,19 @@ function App() {
         {!isMainContentCollapsed && !isSidebarCollapsed && activeSection !== 'admin' && (
           <MainContent activeSection={activeSection} />
         )}
-        {activeSection === 'admin' ? (
-          <AdminPage onBack={() => setActiveSection('knowledge-articles')} />
-        ) : (
+        {activeSection === 'admin' && !isMainContentCollapsed && !isSidebarCollapsed ? (
+          <div className="flex-1 flex">
+            <AdminPage />
+          </div>
+        ) : activeSection !== 'admin' ? (
           <RightPanel 
-          isExpanded={isMainContentCollapsed || isSidebarCollapsed} 
-          isFullScreen={isSidebarCollapsed}
-          onExpandAll={handleExpandAll}
-          user={user}
-        />
+            isExpanded={isMainContentCollapsed || isSidebarCollapsed} 
+            isFullScreen={isSidebarCollapsed}
+            onExpandAll={handleExpandAll}
+            user={user}
+          />
+        ) : (
+          null
         )}
       </div>
     </>

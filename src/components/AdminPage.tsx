@@ -36,10 +36,9 @@ interface Role {
 }
 
 interface AdminPageProps {
-  onBack: () => void;
 }
 
-const AdminPage: React.FC<AdminPageProps> = ({ onBack }) => {
+const AdminPage: React.FC<AdminPageProps> = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'roles'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -310,18 +309,12 @@ const AdminPage: React.FC<AdminPageProps> = ({ onBack }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex-1 bg-gray-50 overflow-auto">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button
-                onClick={onBack}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                ← Back
-              </button>
               <h1 className="text-2xl font-bold text-gray-900">Admin Panel</h1>
             </div>
             
@@ -357,7 +350,7 @@ const AdminPage: React.FC<AdminPageProps> = ({ onBack }) => {
 
       {/* Notifications */}
       {error && (
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
             <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
             <span className="text-red-700">{error}</span>
@@ -369,7 +362,7 @@ const AdminPage: React.FC<AdminPageProps> = ({ onBack }) => {
       )}
 
       {success && (
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="px-6 py-4">
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
             <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
             <span className="text-green-700">{success}</span>
@@ -381,7 +374,7 @@ const AdminPage: React.FC<AdminPageProps> = ({ onBack }) => {
       )}
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="px-6 py-8">
         {activeTab === 'users' ? (
           <div>
             {/* Users Header */}
