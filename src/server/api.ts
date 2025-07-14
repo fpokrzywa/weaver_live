@@ -16,18 +16,18 @@ const authenticateAdmin = (req: express.Request, res: express.Response, next: ex
 };
 
 // User routes
-app.get('/api/users', authenticateAdmin, (req, res) => {
+app.get('/api/users', authenticateAdmin, async (req, res) => {
   try {
-    const users = userOperations.getAll();
+    const users = await userOperations.getAll();
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-app.get('/api/users/:id', authenticateAdmin, (req, res) => {
+app.get('/api/users/:id', authenticateAdmin, async (req, res) => {
   try {
-    const user = userOperations.getById(parseInt(req.params.id));
+    const user = await userOperations.getById(parseInt(req.params.id));
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -37,7 +37,7 @@ app.get('/api/users/:id', authenticateAdmin, (req, res) => {
   }
 });
 
-app.post('/api/users', authenticateAdmin, (req, res) => {
+app.post('/api/users', authenticateAdmin, async (req, res) => {
   try {
     const userData: CreateUserData = req.body;
     
@@ -46,10 +46,10 @@ app.post('/api/users', authenticateAdmin, (req, res) => {
       return res.status(400).json({ error: 'Email, password, and role are required' });
     }
 
-    const user = userOperations.create(userData);
+    const user = await userOperations.create(userData);
     res.status(201).json(user);
   } catch (error: any) {
-    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    if (error.code === 'SQLITE_CONSTRAINT' || error.message.includes('UNIQUE constraint failed')) {
       res.status(400).json({ error: 'Email already exists' });
     } else {
       res.status(500).json({ error: 'Failed to create user' });
@@ -57,10 +57,10 @@ app.post('/api/users', authenticateAdmin, (req, res) => {
   }
 });
 
-app.put('/api/users/:id', authenticateAdmin, (req, res) => {
+app.put('/api/users/:id', authenticateAdmin, async (req, res) => {
   try {
     const userData: UpdateUserData = req.body;
-    const user = userOperations.update(parseInt(req.params.id), userData);
+    const user = await userOperations.update(parseInt(req.params.id), userData);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -68,7 +68,7 @@ app.put('/api/users/:id', authenticateAdmin, (req, res) => {
     
     res.json(user);
   } catch (error: any) {
-    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    if (error.code === 'SQLITE_CONSTRAINT' || error.message.includes('UNIQUE constraint failed')) {
       res.status(400).json({ error: 'Email already exists' });
     } else {
       res.status(500).json({ error: 'Failed to update user' });
@@ -76,9 +76,9 @@ app.put('/api/users/:id', authenticateAdmin, (req, res) => {
   }
 });
 
-app.delete('/api/users/:id', authenticateAdmin, (req, res) => {
+app.delete('/api/users/:id', authenticateAdmin, async (req, res) => {
   try {
-    const success = userOperations.delete(parseInt(req.params.id));
+    const success = await userOperations.delete(parseInt(req.params.id));
     if (!success) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -89,18 +89,18 @@ app.delete('/api/users/:id', authenticateAdmin, (req, res) => {
 });
 
 // Role routes
-app.get('/api/roles', authenticateAdmin, (req, res) => {
+app.get('/api/roles', authenticateAdmin, async (req, res) => {
   try {
-    const roles = roleOperations.getAll();
+    const roles = await roleOperations.getAll();
     res.json(roles);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch roles' });
   }
 });
 
-app.get('/api/roles/:id', authenticateAdmin, (req, res) => {
+app.get('/api/roles/:id', authenticateAdmin, async (req, res) => {
   try {
-    const role = roleOperations.getById(parseInt(req.params.id));
+    const role = await roleOperations.getById(parseInt(req.params.id));
     if (!role) {
       return res.status(404).json({ error: 'Role not found' });
     }
@@ -110,7 +110,7 @@ app.get('/api/roles/:id', authenticateAdmin, (req, res) => {
   }
 });
 
-app.post('/api/roles', authenticateAdmin, (req, res) => {
+app.post('/api/roles', authenticateAdmin, async (req, res) => {
   try {
     const roleData: CreateRoleData = req.body;
     
@@ -118,10 +118,10 @@ app.post('/api/roles', authenticateAdmin, (req, res) => {
       return res.status(400).json({ error: 'Name and permissions are required' });
     }
 
-    const role = roleOperations.create(roleData);
+    const role = await roleOperations.create(roleData);
     res.status(201).json(role);
   } catch (error: any) {
-    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    if (error.code === 'SQLITE_CONSTRAINT' || error.message.includes('UNIQUE constraint failed')) {
       res.status(400).json({ error: 'Role name already exists' });
     } else {
       res.status(500).json({ error: 'Failed to create role' });
@@ -129,10 +129,10 @@ app.post('/api/roles', authenticateAdmin, (req, res) => {
   }
 });
 
-app.put('/api/roles/:id', authenticateAdmin, (req, res) => {
+app.put('/api/roles/:id', authenticateAdmin, async (req, res) => {
   try {
     const roleData: UpdateRoleData = req.body;
-    const role = roleOperations.update(parseInt(req.params.id), roleData);
+    const role = await roleOperations.update(parseInt(req.params.id), roleData);
     
     if (!role) {
       return res.status(404).json({ error: 'Role not found' });
@@ -140,7 +140,7 @@ app.put('/api/roles/:id', authenticateAdmin, (req, res) => {
     
     res.json(role);
   } catch (error: any) {
-    if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    if (error.code === 'SQLITE_CONSTRAINT' || error.message.includes('UNIQUE constraint failed')) {
       res.status(400).json({ error: 'Role name already exists' });
     } else {
       res.status(500).json({ error: 'Failed to update role' });
@@ -148,9 +148,9 @@ app.put('/api/roles/:id', authenticateAdmin, (req, res) => {
   }
 });
 
-app.delete('/api/roles/:id', authenticateAdmin, (req, res) => {
+app.delete('/api/roles/:id', authenticateAdmin, async (req, res) => {
   try {
-    const success = roleOperations.delete(parseInt(req.params.id));
+    const success = await roleOperations.delete(parseInt(req.params.id));
     if (!success) {
       return res.status(404).json({ error: 'Role not found' });
     }
@@ -165,7 +165,7 @@ app.delete('/api/roles/:id', authenticateAdmin, (req, res) => {
 });
 
 // Authentication route
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -173,7 +173,7 @@ app.post('/api/auth/login', (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const user = userOperations.getByEmail(email);
+    const user = await userOperations.getByEmail(email);
     if (!user || !userOperations.verifyPassword(password, user.password_hash)) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -183,7 +183,7 @@ app.post('/api/auth/login', (req, res) => {
     }
 
     // Update last login
-    userOperations.updateLastLogin(user.id);
+    await userOperations.updateLastLogin(user.id);
 
     // In a real app, you'd generate a JWT token here
     const { password_hash, ...userWithoutPassword } = user;

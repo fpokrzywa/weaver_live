@@ -1,65 +1,69 @@
-import Database from 'better-sqlite3';
+import sqlite3 from 'sqlite3';
 import bcrypt from 'bcryptjs';
+import { promisify } from 'util';
 
 const dbPath = 'aw_build.db';
-const db = new Database(dbPath);
+const db = new sqlite3.Database(dbPath);
+
+// Promisify database methods for easier async/await usage
+const dbRun = promisify(db.run.bind(db));
+const dbGet = promisify(db.get.bind(db));
+const dbAll = promisify(db.all.bind(db));
 
 // Initialize database with schema directly
-const schema = `
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  first_name TEXT,
-  last_name TEXT,
-  role_id INTEGER,
-  is_active BOOLEAN DEFAULT 1,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  last_login DATETIME,
-  FOREIGN KEY (role_id) REFERENCES roles (id)
-);
+const initializeDatabase = async () => {
+  const schema = `
+    -- Users table
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      first_name TEXT,
+      last_name TEXT,
+      role_id INTEGER,
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_login DATETIME,
+      FOREIGN KEY (role_id) REFERENCES roles (id)
+    );
 
--- Roles table
-CREATE TABLE IF NOT EXISTS roles (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT UNIQUE NOT NULL,
-  description TEXT,
-  permissions TEXT, -- JSON string of permissions
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+    -- Roles table
+    CREATE TABLE IF NOT EXISTS roles (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      description TEXT,
+      permissions TEXT, -- JSON string of permissions
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
 
--- Insert default roles
-INSERT OR IGNORE INTO roles (id, name, description, permissions) VALUES 
-(1, 'Admin', 'Full system access', '["user_management", "role_management", "system_settings"]'),
-(2, 'User', 'Standard user access', '["basic_access"]'),
-(3, 'Manager', 'Manager level access', '["basic_access", "team_management"]');
+  try {
+    // Execute schema
+    await dbRun(schema);
 
--- Insert default admin user (password: admin123)
-INSERT OR IGNORE INTO users (id, email, password_hash, first_name, last_name, role_id) VALUES 
-(1, 'freddie@3cpublish.com', '$2a$10$rOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQZQZQZQZOzJqQZQZQZQZQ', 'Freddie', 'Admin', 1);
-`;
+    // Insert default roles
+    await dbRun(`INSERT OR IGNORE INTO roles (id, name, description, permissions) VALUES 
+      (1, 'Admin', 'Full system access', '["user_management", "role_management", "system_settings"]'),
+      (2, 'User', 'Standard user access', '["basic_access"]'),
+      (3, 'Manager', 'Manager level access', '["basic_access", "team_management"]')`);
 
-// Execute schema
-db.exec(schema);
+    // Hash the default admin password properly
+    const hashedPassword = bcrypt.hashSync('Appdev2025!', 10);
+    
+    // Insert default admin user
+    await dbRun(`INSERT OR IGNORE INTO users (id, email, password_hash, first_name, last_name, role_id) VALUES 
+      (1, 'freddie@3cpublish.com', ?, 'Freddie', 'Admin', 1)`, [hashedPassword]);
 
-// Hash the default admin password properly
-const hashPassword = (password: string): string => {
-  return bcrypt.hashSync(password, 10);
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.log('Database initialization error:', error.message);
+  }
 };
 
-// Update admin password with proper hash
-const updateAdminPassword = db.prepare(`
-  UPDATE users SET password_hash = ? WHERE email = 'freddie@3cpublish.com'
-`);
-try {
-  updateAdminPassword.run(hashPassword('Appdev2025!'));
-  console.log('Database initialized successfully');
-} catch (error) {
-  console.log('Database already initialized or error:', error.message);
-}
+// Initialize database
+initializeDatabase();
 
 export interface User {
   id: number;
@@ -112,57 +116,62 @@ export interface UpdateRoleData {
   permissions?: string[];
 }
 
+// Hash password helper
+const hashPassword = (password: string): string => {
+  return bcrypt.hashSync(password, 10);
+};
+
 // User operations
 export const userOperations = {
-  getAll: (): User[] => {
-    const stmt = db.prepare(`
+  getAll: async (): Promise<User[]> => {
+    const query = `
       SELECT u.*, r.name as role_name 
       FROM users u 
       LEFT JOIN roles r ON u.role_id = r.id 
       ORDER BY u.created_at DESC
-    `);
-    return stmt.all() as User[];
+    `;
+    return await dbAll(query) as User[];
   },
 
-  getById: (id: number): User | undefined => {
-    const stmt = db.prepare(`
+  getById: async (id: number): Promise<User | undefined> => {
+    const query = `
       SELECT u.*, r.name as role_name 
       FROM users u 
       LEFT JOIN roles r ON u.role_id = r.id 
       WHERE u.id = ?
-    `);
-    return stmt.get(id) as User | undefined;
+    `;
+    return await dbGet(query, [id]) as User | undefined;
   },
 
-  getByEmail: (email: string): User | undefined => {
-    const stmt = db.prepare(`
+  getByEmail: async (email: string): Promise<User | undefined> => {
+    const query = `
       SELECT u.*, r.name as role_name 
       FROM users u 
       LEFT JOIN roles r ON u.role_id = r.id 
       WHERE u.email = ?
-    `);
-    return stmt.get(email) as User | undefined;
+    `;
+    return await dbGet(query, [email]) as User | undefined;
   },
 
-  create: (userData: CreateUserData): User => {
+  create: async (userData: CreateUserData): Promise<User> => {
     const hashedPassword = hashPassword(userData.password);
-    const stmt = db.prepare(`
+    const query = `
       INSERT INTO users (email, password_hash, first_name, last_name, role_id)
       VALUES (?, ?, ?, ?, ?)
-    `);
+    `;
     
-    const result = stmt.run(
+    const result = await dbRun(query, [
       userData.email,
       hashedPassword,
       userData.first_name || null,
       userData.last_name || null,
       userData.role_id
-    );
+    ]);
     
-    return userOperations.getById(result.lastInsertRowid as number)!;
+    return await userOperations.getById((result as any).lastID);
   },
 
-  update: (id: number, userData: UpdateUserData): User | undefined => {
+  update: async (id: number, userData: UpdateUserData): Promise<User | undefined> => {
     const updates: string[] = [];
     const values: any[] = [];
 
@@ -187,28 +196,26 @@ export const userOperations = {
       values.push(userData.is_active);
     }
 
-    if (updates.length === 0) return userOperations.getById(id);
+    if (updates.length === 0) return await userOperations.getById(id);
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
 
-    const stmt = db.prepare(`
-      UPDATE users SET ${updates.join(', ')} WHERE id = ?
-    `);
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = ?`;
+    await dbRun(query, values);
     
-    stmt.run(...values);
-    return userOperations.getById(id);
+    return await userOperations.getById(id);
   },
 
-  delete: (id: number): boolean => {
-    const stmt = db.prepare('DELETE FROM users WHERE id = ?');
-    const result = stmt.run(id);
-    return result.changes > 0;
+  delete: async (id: number): Promise<boolean> => {
+    const query = 'DELETE FROM users WHERE id = ?';
+    const result = await dbRun(query, [id]);
+    return (result as any).changes > 0;
   },
 
-  updateLastLogin: (id: number): void => {
-    const stmt = db.prepare('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?');
-    stmt.run(id);
+  updateLastLogin: async (id: number): Promise<void> => {
+    const query = 'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?';
+    await dbRun(query, [id]);
   },
 
   verifyPassword: (password: string, hash: string): boolean => {
@@ -218,32 +225,32 @@ export const userOperations = {
 
 // Role operations
 export const roleOperations = {
-  getAll: (): Role[] => {
-    const stmt = db.prepare('SELECT * FROM roles ORDER BY name');
-    return stmt.all() as Role[];
+  getAll: async (): Promise<Role[]> => {
+    const query = 'SELECT * FROM roles ORDER BY name';
+    return await dbAll(query) as Role[];
   },
 
-  getById: (id: number): Role | undefined => {
-    const stmt = db.prepare('SELECT * FROM roles WHERE id = ?');
-    return stmt.get(id) as Role | undefined;
+  getById: async (id: number): Promise<Role | undefined> => {
+    const query = 'SELECT * FROM roles WHERE id = ?';
+    return await dbGet(query, [id]) as Role | undefined;
   },
 
-  create: (roleData: CreateRoleData): Role => {
-    const stmt = db.prepare(`
+  create: async (roleData: CreateRoleData): Promise<Role> => {
+    const query = `
       INSERT INTO roles (name, description, permissions)
       VALUES (?, ?, ?)
-    `);
+    `;
     
-    const result = stmt.run(
+    const result = await dbRun(query, [
       roleData.name,
       roleData.description || null,
       JSON.stringify(roleData.permissions)
-    );
+    ]);
     
-    return roleOperations.getById(result.lastInsertRowid as number)!;
+    return await roleOperations.getById((result as any).lastID);
   },
 
-  update: (id: number, roleData: UpdateRoleData): Role | undefined => {
+  update: async (id: number, roleData: UpdateRoleData): Promise<Role | undefined> => {
     const updates: string[] = [];
     const values: any[] = [];
 
@@ -260,31 +267,29 @@ export const roleOperations = {
       values.push(JSON.stringify(roleData.permissions));
     }
 
-    if (updates.length === 0) return roleOperations.getById(id);
+    if (updates.length === 0) return await roleOperations.getById(id);
 
     updates.push('updated_at = CURRENT_TIMESTAMP');
     values.push(id);
 
-    const stmt = db.prepare(`
-      UPDATE roles SET ${updates.join(', ')} WHERE id = ?
-    `);
+    const query = `UPDATE roles SET ${updates.join(', ')} WHERE id = ?`;
+    await dbRun(query, values);
     
-    stmt.run(...values);
-    return roleOperations.getById(id);
+    return await roleOperations.getById(id);
   },
 
-  delete: (id: number): boolean => {
+  delete: async (id: number): Promise<boolean> => {
     // Check if role is in use
-    const checkStmt = db.prepare('SELECT COUNT(*) as count FROM users WHERE role_id = ?');
-    const result = checkStmt.get(id) as { count: number };
+    const checkQuery = 'SELECT COUNT(*) as count FROM users WHERE role_id = ?';
+    const result = await dbGet(checkQuery, [id]) as { count: number };
     
     if (result.count > 0) {
       throw new Error('Cannot delete role that is assigned to users');
     }
 
-    const stmt = db.prepare('DELETE FROM roles WHERE id = ?');
-    const deleteResult = stmt.run(id);
-    return deleteResult.changes > 0;
+    const deleteQuery = 'DELETE FROM roles WHERE id = ?';
+    const deleteResult = await dbRun(deleteQuery, [id]);
+    return (deleteResult as any).changes > 0;
   }
 };
 
