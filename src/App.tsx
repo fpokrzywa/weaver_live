@@ -80,12 +80,10 @@ function App() {
 
   const handleCollapseAll = () => {
     setIsSidebarCollapsed(true);
-    setIsMainContentCollapsed(true);
   };
 
   const handleExpandAll = () => {
     setIsSidebarCollapsed(false);
-    setIsMainContentCollapsed(false);
   };
 
   // Always show landing page first, then show main app after sign in
@@ -130,15 +128,13 @@ function App() {
           <div className="flex-1 flex">
             <AdminPage />
           </div>
-        ) : activeSection !== 'admin' ? (
+        ) : (
           <RightPanel 
-            isExpanded={!showMainContent || isMainContentCollapsed || isSidebarCollapsed} 
+            isExpanded={!showMainContent || isSidebarCollapsed} 
             isFullScreen={isSidebarCollapsed}
             onExpandAll={handleExpandAll}
             user={user}
           />
-        ) : (
-          null
         )}
       </div>
     </>
