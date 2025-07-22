@@ -2,8 +2,8 @@ import { MongoClient, Db, Collection } from 'mongodb';
 import bcrypt from 'bcryptjs';
 
 const CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING || 'mongodb://localhost:27017';
-const DATABASE_NAME = process.env.MONGODB_DATABASE_NAME || 'agenticweaver';
-const COLLECTION_NAME = process.env.MONGODB_COLLECTION_NAME || 'user';
+const DATABASE_NAME = process.env.MONGODB_DATABASE_NAME;
+const COLLECTION_NAME = process.env.MONGODB_COLLECTION_NAME;
 
 let client: MongoClient | null = null;
 let db: Db | null = null;
