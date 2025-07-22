@@ -16,6 +16,7 @@ function App() {
   const [activeSection, setActiveSection] = useState('knowledge-articles');
   const [isMainContentCollapsed, setIsMainContentCollapsed] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [showMainContent, setShowMainContent] = useState(false);
 
   const handleGetStarted = () => {
     setShowGetStartedModal(true);
@@ -55,10 +56,18 @@ function App() {
     setIsSignedIn(false);
     setShowLanding(true);
     setActiveSection('knowledge-articles');
+    setShowMainContent(false);
   };
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
+    // Show main content when a Find Answers section is selected
+    const findAnswersSections = ['knowledge-articles', 'organization-chart', 'conference-rooms', 'customer-accounts', 'expense-reports'];
+    if (findAnswersSections.includes(section)) {
+      setShowMainContent(true);
+    } else {
+      setShowMainContent(false);
+    }
     // If the main content is collapsed, expand it when a nav item is clicked
     if (isMainContentCollapsed) {
       setIsMainContentCollapsed(false);
@@ -115,7 +124,7 @@ function App() {
             onSignOut={handleSignOut}
           />
         )}
-        {!isMainContentCollapsed && !isSidebarCollapsed && activeSection !== 'admin' && (
+        {showMainContent && !isMainContentCollapsed && !isSidebarCollapsed && activeSection !== 'admin' && (
           <MainContent activeSection={activeSection} />
         )}
         {activeSection === 'admin' && !isMainContentCollapsed && !isSidebarCollapsed ? (
@@ -124,7 +133,7 @@ function App() {
           </div>
         ) : activeSection !== 'admin' ? (
           <RightPanel 
-            isExpanded={isMainContentCollapsed || isSidebarCollapsed} 
+            isExpanded={!showMainContent || isMainContentCollapsed || isSidebarCollapsed} 
             isFullScreen={isSidebarCollapsed}
             onExpandAll={handleExpandAll}
             user={user}

@@ -31,6 +31,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   user,
   onSignOut 
 }) => {
+  const [isFindAnswersExpanded, setIsFindAnswersExpanded] = useState(false);
+
   const findAnswersItems = [
     { icon: Search, label: 'Knowledge articles', id: 'knowledge-articles' },
     { icon: Users, label: 'Organization chart', id: 'organization-chart' },
@@ -49,6 +51,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // Check if user is admin
   const isAdmin = user?.email === 'freddie@3cpublish.com';
+
+  const handleFindAnswersToggle = () => {
+    setIsFindAnswersExpanded(!isFindAnswersExpanded);
+  };
+
+  const handleFindAnswersItemClick = (itemId: string) => {
+    if (!isFindAnswersExpanded) {
+      setIsFindAnswersExpanded(true);
+    }
+    onSectionChange(itemId);
+  };
 
   return (
     <div className="w-64 bg-gray-800 text-white min-h-screen flex flex-col">
@@ -79,25 +92,35 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 py-6">
         {/* Find Answers Section */}
         <div className="mb-8">
-          <h3 className="px-6 text-xs font-semibold text-gray-300 uppercase tracking-wider mb-4">
-            Find Answers
-          </h3>
-          <nav className="space-y-1">
-            {findAnswersItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => onSectionChange(item.id)}
-                className={`flex items-center px-6 py-2 text-sm font-medium transition-colors w-full text-left ${
-                  activeSection === item.id
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-300 hover:bg-gray-600 hover:text-white'
-                }`}
-              >
-                <item.icon className="mr-3 h-4 w-4" />
-                {item.label}
-              </button>
-            ))}
-          </nav>
+          <button
+            onClick={handleFindAnswersToggle}
+            className="flex items-center justify-between w-full px-6 py-2 text-xs font-semibold text-gray-300 uppercase tracking-wider hover:text-white transition-colors"
+          >
+            <span>Find Answers</span>
+            {isFindAnswersExpanded ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+          {isFindAnswersExpanded && (
+            <nav className="space-y-1 mt-4">
+              {findAnswersItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleFindAnswersItemClick(item.id)}
+                  className={`flex items-center px-6 py-2 text-sm font-medium transition-colors w-full text-left ${
+                    activeSection === item.id
+                      ? 'bg-orange-500 text-white'
+                      : 'text-gray-300 hover:bg-gray-600 hover:text-white'
+                  }`}
+                >
+                  <item.icon className="mr-3 h-4 w-4" />
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          )}
         </div>
 
         {/* Automate Tasks Section */}
