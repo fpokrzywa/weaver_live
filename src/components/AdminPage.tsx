@@ -15,25 +15,7 @@ import {
   EyeOff
 } from 'lucide-react';
 
-interface User {
-  id: number;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  role_id: number;
-  role_name?: string;
-  is_active: boolean;
-  created_at: string;
-  last_login?: string;
-}
-
-interface Role {
-  id: number;
-  name: string;
-  description?: string;
-  permissions: string;
-  created_at: string;
-}
+import { User, Role } from '../database/mongodb';
 
 interface AdminPageProps {
 }

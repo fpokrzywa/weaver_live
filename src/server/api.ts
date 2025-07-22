@@ -1,12 +1,15 @@
 import express from 'express';
 import cors from 'cors';
-import { userOperations, roleOperations, CreateUserData, UpdateUserData, CreateRoleData, UpdateRoleData } from '../database/database';
+import { userOperations, roleOperations, CreateUserData, UpdateUserData, CreateRoleData, UpdateRoleData, initializeDatabase } from '../database/mongodb';
 
 const app = express();
 const PORT = 3001;
 
 app.use(cors());
 app.use(express.json());
+
+// Initialize database connection
+initializeDatabase().catch(console.error);
 
 // Authentication middleware
 const authenticateAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
