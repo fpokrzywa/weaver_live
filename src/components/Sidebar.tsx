@@ -31,6 +31,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSignOut 
 }) => {
   const [isFindAnswersExpanded, setIsFindAnswersExpanded] = useState(false);
+  const [isAutomateTasksExpanded, setIsAutomateTasksExpanded] = useState(true);
+  const [isAdministrationExpanded, setIsAdministrationExpanded] = useState(true);
 
   const findAnswersItems = [
     { icon: Search, label: 'Knowledge articles', id: 'knowledge-articles' },
@@ -62,6 +64,27 @@ const Sidebar: React.FC<SidebarProps> = ({
     onSectionChange(itemId);
   };
 
+  const handleAutomateTasksToggle = () => {
+    setIsAutomateTasksExpanded(!isAutomateTasksExpanded);
+  };
+
+  const handleAutomateTasksItemClick = (itemId: string) => {
+    if (!isAutomateTasksExpanded) {
+      setIsAutomateTasksExpanded(true);
+    }
+    onSectionChange(itemId);
+  };
+
+  const handleAdministrationToggle = () => {
+    setIsAdministrationExpanded(!isAdministrationExpanded);
+  };
+
+  const handleAdministrationItemClick = (itemId: string) => {
+    if (!isAdministrationExpanded) {
+      setIsAdministrationExpanded(true);
+    }
+    onSectionChange(itemId);
+  };
   return (
     <div className="w-64 bg-gray-800 text-white min-h-screen flex flex-col">
       {/* Logo */}
@@ -120,47 +143,67 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Automate Tasks Section */}
-        <div>
-          <h3 className="px-6 text-xs font-semibold text-gray-300 uppercase tracking-wider mb-4">
-            Automate Tasks
-          </h3>
-          <nav className="space-y-1">
-            {automateTasksItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => onSectionChange(item.id)}
-                className={`flex items-center px-6 py-2 text-sm font-medium transition-colors w-full text-left ${
-                  activeSection === item.id
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-300 hover:bg-gray-600 hover:text-white'
-                }`}
-              >
-                <item.icon className="mr-3 h-4 w-4" />
-                {item.label}
-              </button>
-            ))}
-          </nav>
+        <div className="mb-8">
+          <button
+            onClick={handleAutomateTasksToggle}
+            className="flex items-center justify-between w-full px-6 py-2 text-xs font-semibold text-gray-300 uppercase tracking-wider hover:text-white transition-colors"
+          >
+            <span>Automate Tasks</span>
+            {isAutomateTasksExpanded ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+          {isAutomateTasksExpanded && (
+            <nav className="space-y-1 mt-4">
+              {automateTasksItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => handleAutomateTasksItemClick(item.id)}
+                  className={`flex items-center px-6 py-2 text-sm font-medium transition-colors w-full text-left ${
+                    activeSection === item.id
+                      ? 'bg-orange-500 text-white'
+                      : 'text-gray-300 hover:bg-gray-600 hover:text-white'
+                  }`}
+                >
+                  <item.icon className="mr-3 h-4 w-4" />
+                  {item.label}
+                </button>
+              ))}
+            </nav>
+          )}
         </div>
 
         {/* Admin Section - Only show for admin users */}
         {isAdmin && (
-          <div>
-            <h3 className="px-6 text-xs font-semibold text-gray-300 uppercase tracking-wider mb-4">
-              Administration
-            </h3>
-            <nav className="space-y-1">
-              <button
-                onClick={() => onSectionChange('admin')}
-                className={`flex items-center px-6 py-2 text-sm font-medium transition-colors w-full text-left ${
-                  activeSection === 'admin'
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-300 hover:bg-gray-600 hover:text-white'
-                }`}
-              >
-                <Users className="mr-3 h-4 w-4" />
-                User Management
-              </button>
-            </nav>
+          <div className="mb-8">
+            <button
+              onClick={handleAdministrationToggle}
+              className="flex items-center justify-between w-full px-6 py-2 text-xs font-semibold text-gray-300 uppercase tracking-wider hover:text-white transition-colors"
+            >
+              <span>Administration</span>
+              {isAdministrationExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+            {isAdministrationExpanded && (
+              <nav className="space-y-1 mt-4">
+                <button
+                  onClick={() => handleAdministrationItemClick('admin')}
+                  className={`flex items-center px-6 py-2 text-sm font-medium transition-colors w-full text-left ${
+                    activeSection === 'admin'
+                      ? 'bg-orange-500 text-white'
+                      : 'text-gray-300 hover:bg-gray-600 hover:text-white'
+                  }`}
+                >
+                  <Users className="mr-3 h-4 w-4" />
+                  User Management
+                </button>
+              </nav>
+            )}
           </div>
         )}
       </div>
