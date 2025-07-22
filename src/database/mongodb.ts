@@ -1,7 +1,7 @@
 import { MongoClient, Db, Collection } from 'mongodb';
 import bcrypt from 'bcryptjs';
 
-const CONNECTION_STRING = 'mongodb://admin:0yNWbpcr8zFT9fL!@31.97.139.91:27017';
+const CONNECTION_STRING = 'mongodb://admin:Password123!@31.97.139.91:27017';
 const DATABASE_NAME = 'agenticweaver';
 const COLLECTION_NAME = 'user';
 
