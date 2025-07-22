@@ -11,6 +11,7 @@ import {
   Calendar, 
   Lock,
   ChevronRight,
+  ChevronDown,
   Menu
 } from 'lucide-react';
 
