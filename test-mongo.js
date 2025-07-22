@@ -1,8 +1,8 @@
 const { MongoClient } = require('mongodb');
 require('dotenv').config();
 
-const CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING || 'mongodb://localhost:27017';
-const DATABASE_NAME = process.env.MONGODB_DATABASE_NAME || 'agenticweaver';
+const CONNECTION_STRING = process.env.MONGODB_CONNECTION_STRING;
+const DATABASE_NAME = process.env.MONGODB_DATABASE_NAME;
 
 async function testConnection() {
   let client;
