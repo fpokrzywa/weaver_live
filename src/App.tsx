@@ -118,7 +118,6 @@ function App() {
           <Sidebar 
             activeSection={activeSection}
             onSectionChange={handleSectionChange}
-            onLogoClick={() => setIsMainContentCollapsed(!isMainContentCollapsed)}
             onCollapseAll={handleCollapseAll}
             user={user}
             onSignOut={handleSignOut}

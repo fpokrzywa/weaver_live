@@ -18,7 +18,6 @@ import {
 interface SidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
-  onLogoClick: () => void;
   onCollapseAll: () => void;
   user: { email: string } | null;
   onSignOut: () => void;
@@ -27,7 +26,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ 
   activeSection, 
   onSectionChange, 
-  onLogoClick, 
   onCollapseAll,
   user,
   onSignOut 
@@ -69,16 +67,13 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Logo */}
       <div className="p-6 border-b border-gray-600">
         <div className="flex items-center justify-between">
-          <button 
-            onClick={onLogoClick}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-          >
+          <div className="flex items-center space-x-2">
             <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center">
               <ChevronRight className="w-4 h-4 text-white" />
             </div>
             <span className="font-semibold text-sm">Weaver</span>
             <span className="text-xs text-gray-400 uppercase tracking-wider">PLAYGROUND</span>
-          </button>
+          </div>
           <button
             onClick={onCollapseAll}
             className="p-1 hover:bg-gray-600 rounded transition-colors"
