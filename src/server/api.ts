@@ -1,6 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import { userOperations, roleOperations, CreateUserData, UpdateUserData, CreateRoleData, UpdateRoleData, initializeDatabase } from '../database/mongodb';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = 3001;
