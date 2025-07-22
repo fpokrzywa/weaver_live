@@ -8,8 +8,11 @@ const PORT = 3001;
 app.use(cors());
 app.use(express.json());
 
-// Initialize database connection
-initializeDatabase().catch(console.error);
+// Initialize database connection with better error handling
+initializeDatabase().catch(error => {
+  console.error('Failed to initialize database:', error);
+  console.error('API server will continue but database operations will fail');
+});
 
 // Authentication middleware
 const authenticateAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {

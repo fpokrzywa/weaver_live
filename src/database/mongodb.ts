@@ -51,12 +51,19 @@ const connectToDatabase = async (): Promise<Db> => {
     console.log('Attempting to connect to MongoDB...');
     console.log('Connection string:', CONNECTION_STRING.replace(/:[^:@]*@/, ':****@'));
     
-    client = new MongoClient(CONNECTION_STRING);
+    client = new MongoClient(CONNECTION_STRING, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+    });
     await client.connect();
     console.log('MongoDB client connected successfully');
     
     db = client.db(DATABASE_NAME);
     console.log(`Connected to database: ${DATABASE_NAME}`);
+    
+    // Test the connection
+    await db.admin().ping();
+    console.log('MongoDB ping successful');
     
     // Initialize default data if needed
     await initializeDefaultData();
@@ -67,7 +74,8 @@ const connectToDatabase = async (): Promise<Db> => {
     console.error('Error details:', {
       name: error.name,
       message: error.message,
-      code: error.code
+      code: error.code,
+      stack: error.stack
     });
     throw error;
   }
