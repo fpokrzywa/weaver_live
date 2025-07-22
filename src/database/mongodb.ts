@@ -1,7 +1,7 @@
 import { MongoClient, Db, Collection } from 'mongodb';
 import bcrypt from 'bcryptjs';
 
-const CONNECTION_STRING = 'mongodb://admin:0yNWbpcr8zFT9fL!@31.97.139.91:27017';
+const CONNECTION_STRING = 'mongodb://admin:Password123!@31.97.139.91:27017';
 const DATABASE_NAME = 'agenticweaver';
 const COLLECTION_NAME = 'user';
 
@@ -48,17 +48,27 @@ const connectToDatabase = async (): Promise<Db> => {
   }
 
   try {
+    console.log('Attempting to connect to MongoDB...');
+    console.log('Connection string:', CONNECTION_STRING.replace(/:[^:@]*@/, ':****@'));
+    
     client = new MongoClient(CONNECTION_STRING);
     await client.connect();
+    console.log('MongoDB client connected successfully');
+    
     db = client.db(DATABASE_NAME);
-    console.log('Connected to MongoDB successfully');
+    console.log(`Connected to database: ${DATABASE_NAME}`);
     
     // Initialize default data if needed
     await initializeDefaultData();
     
     return db;
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('MongoDB connection failed:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code
+    });
     throw error;
   }
 };
